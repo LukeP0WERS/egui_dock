@@ -286,6 +286,19 @@ impl<Tab> Node<Tab> {
         }
     }
 
+    /// Sets the tab bar hidden state of the node.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` is not a [`Leaf`](Node::Leaf) node.
+    #[inline]
+    pub fn set_tab_bar_hidden(&mut self, tab_bar_hidden: bool) {
+        match self {
+            Node::Leaf(leaf) => leaf.tab_bar_hidden = tab_bar_hidden,
+            _ => panic!("node was not a leaf"),
+        }
+    }
+
     /// Sets the number of layers of collapsed leaf subnodes.
     ///
     /// # Panics
