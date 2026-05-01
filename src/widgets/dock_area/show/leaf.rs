@@ -94,7 +94,10 @@ impl<Tab> DockArea<'_, Tab> {
                 .with((path.surface, "surface"))
                 .with((path.node, "node"))
                 .with("hidden_tab_bar_drag");
-            ui.interact(tabbar_rect, id, Sense::click_and_drag());
+            let response = ui.interact(tabbar_rect, id, Sense::click_and_drag());
+            if response.hovered() {
+                ui.output_mut(|o| o.cursor_icon = CursorIcon::Grab);
+            }
             let is_being_dragged = ui.ctx().is_being_dragged(id)
                 && ui.input(|i| i.pointer.is_decidedly_dragging());
             if is_being_dragged {
