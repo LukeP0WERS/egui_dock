@@ -1270,6 +1270,7 @@ impl<Tab> DockArea<'_, Tab> {
                 if ui.input(|i| i.pointer.any_click()) {
                     if let Some(pos) = state.last_hover_pos {
                         if body_rect.contains(pos)
+                            && !tabbar_rect.contains(pos)
                             && Some(ui.layer_id()) == ui.ctx().layer_id_at(pos)
                         {
                             self.new_focused = Some(path);
