@@ -53,14 +53,30 @@ impl<Tab> DockArea<'_, Tab> {
         if self.dock_state[path].tabs_count() == 0 {
             return;
         }
-        let tabbar_rect = self.tab_bar(
-            ui,
-            state,
-            path,
-            tab_viewer,
-            fade_style.map(|(style, _)| style),
-            collapsed,
-        );
+        
+        let leaf = self.dock_state.leaf(path).expect("This node must be a leaf");
+        let tab_bar_hidden = self.hidable_tab_bars && leaf.tab_bar_hidden;
+        let style = fade_style.map(|(style, _)| style);
+
+        let tabbar_rect = if !tab_bar_hidden {
+            self.tab_bar(
+                ui,
+                state,
+                path,
+                tab_viewer,
+                style,
+                collapsed,
+            )
+        } else {
+            // allow leaf to be dragged by the top inner margin of the tab when the tab bar is hidden
+            let style = style
+                .unwrap_or_else(|| self.style.as_ref().unwrap());
+            let drag_size = vec2(
+                ui.available_width(),
+                style.tab.tab_body.inner_margin.top as f32
+            );
+            Rect::from_min_size(ui.cursor().min, drag_size)
+        };
         self.tab_body(
             ui,
             state,
@@ -385,6 +401,8 @@ impl<Tab> DockArea<'_, Tab> {
                         Button::new(&self.dock_state.translations.tab_context_menu.eject_button);
                     let close_button =
                         Button::new(&self.dock_state.translations.tab_context_menu.close_button);
+                    let hide_tab_bar_button =
+                        Button::new(&self.dock_state.translations.tab_context_menu.hide_tab_bar_button);
 
                     response.context_menu(|ui| {
                         let leaf = self.dock_state[path]
@@ -413,6 +431,9 @@ impl<Tab> DockArea<'_, Tab> {
                                 OnCloseResponse::Ignore => (),
                             }
                             ui.close();
+                        }
+                        if self.hidable_tab_bars && ui.add(hide_tab_bar_button).clicked() {
+                            leaf.tab_bar_hidden = true;
                         }
                     });
                 }
