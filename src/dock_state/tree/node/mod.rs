@@ -286,6 +286,15 @@ impl<Tab> Node<Tab> {
         }
     }
 
+    /// Returns `true` if the node is a leaf with a hidden tab bar, otherwise `false`.
+    #[inline(always)]
+    pub fn is_tab_bar_hidden(&self) -> bool {
+        match self {
+            Node::Leaf(leaf) => leaf.tab_bar_hidden,
+            _ => false,
+        }
+    }
+
     /// Sets the tab bar hidden state of the node.
     ///
     /// # Panics

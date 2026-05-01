@@ -26,7 +26,7 @@ pub struct LeafNode<Tab> {
     /// Whether the leaf is collapsed.
     pub collapsed: bool,
 
-    /// Whether the leaf tab bar is hidden
+    /// Whether the leaf tab bar is hidden.
     pub tab_bar_hidden: bool,
 }
 
