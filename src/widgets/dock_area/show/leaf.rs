@@ -90,19 +90,56 @@ impl<Tab> DockArea<'_, Tab> {
 
         // handle interaction with the top margin when the tab bar is hidden
         if tab_bar_hidden {
-            let id = self.id
+            let style = style.unwrap_or_else(|| self.style.as_ref().unwrap());
+            let btn_size = style.buttons.show_tab_bar_size;
+            let btn_expand = style.buttons.show_tab_bar_hover_expand;
+            let btn_color = style.buttons.show_tab_bar_color;
+            let btn_active_color = style.buttons.show_tab_bar_active_color;
+
+            // register the drag area first so the button takes priority over it
+            let drag_id = self.id
                 .with((path.surface, "surface"))
                 .with((path.node, "node"))
                 .with("hidden_tab_bar_drag");
-            let response = ui.interact(tabbar_rect, id, Sense::click_and_drag());
+            let drag_response = ui.interact(tabbar_rect, drag_id, Sense::click_and_drag());
 
-            // right-click context menu for the tab bar
-            if self.tab_context_menus {
+            // triangle button in the top-left corner to show the tab bar
+            let btn_rect = Rect::from_min_size(tabbar_rect.left_top(), Vec2::splat(btn_size));
+            let btn_id = self.id
+                .with((path.surface, "surface"))
+                .with((path.node, "node"))
+                .with("show_tab_bar_btn");
+            let btn_response = ui.interact(btn_rect, btn_id, Sense::click());
+            let (draw_rect, color) = if btn_response.hovered() {
+                let expanded_size = Vec2::splat(btn_size + btn_expand);
+                (Rect::from_min_size(btn_rect.left_top(), expanded_size), btn_active_color)
+            } else {
+                (btn_rect, btn_color)
+            };
+            ui.painter().add(Shape::convex_polygon(
+                vec![
+                    draw_rect.left_top(),
+                    draw_rect.right_top(),
+                    draw_rect.left_bottom(),
+                ],
+                color,
+                Stroke::NONE,
+            ));
+            if btn_response.clicked() {
+                self.dock_state[path]
+                    .get_leaf_mut()
+                    .expect("This node must be a leaf")
+                    .tab_bar_hidden = false;
+            }
+
+            let on_button = btn_response.hovered() || btn_response.clicked();
+
+            // right-click context menu to show the tab bar
+            if self.tab_context_menus && !on_button {
                 let show_button = Button::new(
                     &self.dock_state.translations.tab_context_menu.show_tab_bar_button,
                 );
-                response.context_menu(|ui| {
-                    // shows the hidden tab bar when pressed
+                drag_response.context_menu(|ui| {
                     if ui.add(show_button).clicked() {
                         self.dock_state[path]
                             .get_leaf_mut()
@@ -114,11 +151,11 @@ impl<Tab> DockArea<'_, Tab> {
             }
 
             // allow tab to be draggable via the top margin of the tab body
-            if self.draggable_tabs {
-                if response.hovered() {
+            if self.draggable_tabs && !on_button {
+                if drag_response.hovered() {
                     ui.output_mut(|o| o.cursor_icon = CursorIcon::Grab);
                 }
-                let is_being_dragged = ui.ctx().is_being_dragged(id)
+                let is_being_dragged = ui.ctx().is_being_dragged(drag_id)
                     && ui.input(|i| i.pointer.is_decidedly_dragging());
                 if is_being_dragged {
                     ui.output_mut(|o| o.cursor_icon = CursorIcon::Grabbing);

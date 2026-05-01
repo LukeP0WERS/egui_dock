@@ -129,6 +129,18 @@ pub struct ButtonsStyle {
 
     /// Color of the minimize window button's left border.
     pub minimize_window_border_color: Color32,
+
+    /// Color of the show tab bar triangle button.
+    pub show_tab_bar_color: Color32,
+
+    /// Color of the show tab bar triangle button when hovered.
+    pub show_tab_bar_active_color: Color32,
+
+    /// Size of the show tab bar triangle button.
+    pub show_tab_bar_size: f32,
+
+    /// How much the show tab bar button grows when hovered.
+    pub show_tab_bar_hover_expand: f32,
 }
 
 /// Specifies the look and feel of node separators.
@@ -394,6 +406,11 @@ impl Default for ButtonsStyle {
             minimize_window_active_color: Color32::WHITE,
             minimize_window_bg_fill: Color32::GRAY,
             minimize_window_border_color: Color32::BLACK,
+
+            show_tab_bar_color: Color32::GRAY,
+            show_tab_bar_active_color: Color32::WHITE,
+            show_tab_bar_size: 10.0,
+            show_tab_bar_hover_expand: 1.0,
         }
     }
 }
@@ -598,6 +615,8 @@ impl ButtonsStyle {
             minimize_window_color: style.visuals.text_color(),
             minimize_window_active_color: style.visuals.strong_text_color(),
             minimize_window_border_color: style.visuals.widgets.noninteractive.bg_fill,
+            show_tab_bar_color: style.visuals.text_color(),
+            show_tab_bar_active_color: style.visuals.strong_text_color(),
             ..ButtonsStyle::default()
         }
     }
