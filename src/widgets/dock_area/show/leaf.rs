@@ -68,7 +68,7 @@ impl<Tab> DockArea<'_, Tab> {
                 collapsed,
             )
         } else {
-            // allow leaf to be dragged by the top inner margin of the tab when the tab bar is hidden
+            // use the top margin of the tab body as a tab bar
             let style = style
                 .unwrap_or_else(|| self.style.as_ref().unwrap());
             let drag_size = vec2(
@@ -88,37 +88,58 @@ impl<Tab> DockArea<'_, Tab> {
             collapsed,
         );
 
-        // handle dragging by the top margin when the tab bar is hidden
-        if tab_bar_hidden && self.draggable_tabs {
+        // handle interaction with the top margin when the tab bar is hidden
+        if tab_bar_hidden {
             let id = self.id
                 .with((path.surface, "surface"))
                 .with((path.node, "node"))
                 .with("hidden_tab_bar_drag");
             let response = ui.interact(tabbar_rect, id, Sense::click_and_drag());
-            if response.hovered() {
-                ui.output_mut(|o| o.cursor_icon = CursorIcon::Grab);
-            }
-            let is_being_dragged = ui.ctx().is_being_dragged(id)
-                && ui.input(|i| i.pointer.is_decidedly_dragging());
-            if is_being_dragged {
-                ui.output_mut(|o| o.cursor_icon = CursorIcon::Grabbing);
-                if let Some(pointer_pos) = ui.ctx().pointer_interact_pos() {
-                    let start = *state.drag_start.get_or_insert(pointer_pos);
-                    let delta = pointer_pos - start;
-                    if delta.x.abs() > 30.0 || delta.y.abs() > 6.0 {
-                        let active = self.dock_state[path]
-                            .get_leaf()
+
+            // right-click context menu for the tab bar
+            if self.tab_context_menus {
+                let show_button = Button::new(
+                    &self.dock_state.translations.tab_context_menu.show_tab_bar_button,
+                );
+                response.context_menu(|ui| {
+                    // shows the hidden tab bar when pressed
+                    if ui.add(show_button).clicked() {
+                        self.dock_state[path]
+                            .get_leaf_mut()
                             .expect("This node must be a leaf")
-                            .active;
-                        ui.memory_mut(|mem| {
-                            mem.data.insert_temp(
-                                self.id.with("drag_data"),
-                                Some(DragData {
-                                    src: TreeComponent::Tab((path, active).into()),
-                                    rect: self.dock_state[path].rect().unwrap(),
-                                }),
-                            );
-                        });
+                            .tab_bar_hidden = false;
+                        ui.close();
+                    }
+                });
+            }
+
+            // allow tab to be draggable via the top margin of the tab body
+            if self.draggable_tabs {
+                if response.hovered() {
+                    ui.output_mut(|o| o.cursor_icon = CursorIcon::Grab);
+                }
+                let is_being_dragged = ui.ctx().is_being_dragged(id)
+                    && ui.input(|i| i.pointer.is_decidedly_dragging());
+                if is_being_dragged {
+                    ui.output_mut(|o| o.cursor_icon = CursorIcon::Grabbing);
+                    if let Some(pointer_pos) = ui.ctx().pointer_interact_pos() {
+                        let start = *state.drag_start.get_or_insert(pointer_pos);
+                        let delta = pointer_pos - start;
+                        if delta.x.abs() > 30.0 || delta.y.abs() > 6.0 {
+                            let active = self.dock_state[path]
+                                .get_leaf()
+                                .expect("This node must be a leaf")
+                                .active;
+                            ui.memory_mut(|mem| {
+                                mem.data.insert_temp(
+                                    self.id.with("drag_data"),
+                                    Some(DragData {
+                                        src: TreeComponent::Tab((path, active).into()),
+                                        rect: self.dock_state[path].rect().unwrap(),
+                                    }),
+                                );
+                            });
+                        }
                     }
                 }
             }
