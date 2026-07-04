@@ -57,27 +57,22 @@ impl<Tab> DockArea<'_, Tab> {
         if self.dock_state[path].tabs_count() == 0 {
             return;
         }
-        
-        let leaf = self.dock_state.leaf(path).expect("This node must be a leaf");
+
+        let leaf = self
+            .dock_state
+            .leaf(path)
+            .expect("This node must be a leaf");
         let tab_bar_hidden = self.hidable_tab_bars && leaf.tab_bar_hidden;
         let style = fade_style.map(|(style, _)| style);
 
         let tabbar_rect = if !tab_bar_hidden {
-            self.tab_bar(
-                ui,
-                state,
-                path,
-                tab_viewer,
-                style,
-                collapsed,
-            )
+            self.tab_bar(ui, state, path, tab_viewer, style, collapsed)
         } else {
             // use the top margin of the tab body as a tab bar
-            let style = style
-                .unwrap_or_else(|| self.style.as_ref().unwrap());
+            let style = style.unwrap_or_else(|| self.style.as_ref().unwrap());
             let drag_size = vec2(
                 ui.available_width(),
-                style.tab.tab_body.inner_margin.top as f32
+                style.tab.tab_body.inner_margin.top as f32,
             );
             Rect::from_min_size(ui.cursor().min, drag_size)
         };
@@ -93,13 +88,7 @@ impl<Tab> DockArea<'_, Tab> {
         );
 
         if tab_bar_hidden {
-            self.hidden_tab_bar_controls(
-                ui,
-                state,
-                path,
-                tabbar_rect,
-                style,
-            );
+            self.hidden_tab_bar_controls(ui, state, path, tabbar_rect, style);
         }
 
         let tabs = self.dock_state[path]
@@ -132,7 +121,8 @@ impl<Tab> DockArea<'_, Tab> {
         let btn_active_color = style.buttons.show_tab_bar_active_color;
 
         // register the drag area first so the button takes priority over it
-        let drag_id = self.id
+        let drag_id = self
+            .id
             .with((path.surface, "surface"))
             .with((path.node, "node"))
             .with("hidden_tab_bar_drag");
@@ -140,14 +130,18 @@ impl<Tab> DockArea<'_, Tab> {
 
         // triangle button in the top-left corner to show the tab bar
         let btn_rect = Rect::from_min_size(tabbar_rect.left_top(), Vec2::splat(btn_size));
-        let btn_id = self.id
+        let btn_id = self
+            .id
             .with((path.surface, "surface"))
             .with((path.node, "node"))
             .with("show_tab_bar_btn");
         let btn_response = ui.interact(btn_rect, btn_id, Sense::click());
         let (draw_rect, color) = if btn_response.hovered() {
             let expanded_size = Vec2::splat(btn_size + btn_expand);
-            (Rect::from_min_size(btn_rect.left_top(), expanded_size), btn_active_color)
+            (
+                Rect::from_min_size(btn_rect.left_top(), expanded_size),
+                btn_active_color,
+            )
         } else {
             (btn_rect, btn_color)
         };
@@ -172,7 +166,11 @@ impl<Tab> DockArea<'_, Tab> {
         // right-click context menu to show the tab bar
         if self.tab_context_menus && !on_button {
             let show_button = Button::new(
-                &self.dock_state.translations.tab_context_menu.show_tab_bar_button,
+                &self
+                    .dock_state
+                    .translations
+                    .tab_context_menu
+                    .show_tab_bar_button,
             );
             drag_response.context_menu(|ui| {
                 if ui.add(show_button).clicked() {
@@ -447,9 +445,7 @@ impl<Tab> DockArea<'_, Tab> {
                 let response =
                     tabs_ui.interact(response.rect, id.with("dragged"), Sense::click_and_drag());
 
-                if let Some(delta) = self.try_initiate_tab_drag(
-                    tabs_ui, state, path, tab_index,
-                ) {
+                if let Some(delta) = self.try_initiate_tab_drag(tabs_ui, state, path, tab_index) {
                     tabs_ui
                         .ctx()
                         .transform_layer_shapes(layer_id, TSTransform::new(delta, 1.0));
@@ -491,8 +487,13 @@ impl<Tab> DockArea<'_, Tab> {
                         Button::new(&self.dock_state.translations.tab_context_menu.eject_button);
                     let close_button =
                         Button::new(&self.dock_state.translations.tab_context_menu.close_button);
-                    let hide_tab_bar_button =
-                        Button::new(&self.dock_state.translations.tab_context_menu.hide_tab_bar_button);
+                    let hide_tab_bar_button = Button::new(
+                        &self
+                            .dock_state
+                            .translations
+                            .tab_context_menu
+                            .hide_tab_bar_button,
+                    );
 
                     response.context_menu(|ui| {
                         let leaf = self.dock_state[path]
