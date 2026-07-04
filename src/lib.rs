@@ -15,7 +15,7 @@
 //!
 //! ```rust
 //! use egui_dock::{DockArea, DockState, NodeIndex, Style, TabViewer};
-//! use egui::{Ui, WidgetText};
+//! use egui::{Id, Ui, WidgetText};
 //!
 //! // First, let's pick a type that we'll use to attach some data to each tab.
 //! // It can be any type.
@@ -29,6 +29,11 @@
 //! impl TabViewer for MyTabViewer {
 //!     // This associated type is used to attach some data to each tab.
 //!     type Tab = Tab;
+//!
+//!     // Returns the unique ID for the `tab`.
+//!     fn id(&mut self, tab: &mut Self::Tab) -> Id {
+//!         Id::new(tab)
+//!     }
 //!
 //!     // Returns the current `tab`'s title.
 //!     fn title(&mut self, tab: &mut Self::Tab) -> WidgetText {
@@ -67,9 +72,9 @@
 //! }
 //!
 //! # let mut my_tabs = MyTabs::new();
-//! # egui::__run_test_ctx(|ctx| {
+//! # egui::__run_test_ui(|ui| {
 //! #     #[allow(deprecated)]
-//! #     egui::CentralPanel::default().show(ctx, |ui| my_tabs.ui(ui));
+//! #     egui::CentralPanel::default().show(ui, |ui| my_tabs.ui(ui));
 //! # });
 //! ```
 //!
@@ -86,16 +91,17 @@
 //!
 //! ```rust
 //! # use egui_dock::{DockArea, DockState, OverlayType, Style, TabAddAlign, TabViewer};
-//! # use egui::{Ui, WidgetText};
+//! # use egui::{Id, Ui, WidgetText};
 //! # struct MyTabViewer;
 //! # impl TabViewer for MyTabViewer {
 //! #     type Tab = ();
+//! #     fn id(&mut self, tab: &mut Self::Tab) -> Id { Id::new(tab) }
 //! #     fn title(&mut self, tab: &mut Self::Tab) -> WidgetText { WidgetText::default() }
 //! #     fn ui(&mut self, ui: &mut Ui, tab: &mut Self::Tab) {}
 //! # }
-//! # egui::__run_test_ctx(|ctx| {
+//! # egui::__run_test_ui(|ui| {
 //! # #[allow(deprecated)]
-//! # egui::CentralPanel::default().show(ctx, |ui| {
+//! # egui::CentralPanel::default().show(ui, |ui| {
 //! # let mut dock_state = DockState::new(vec![]);
 //! // Inherit the look and feel from egui.
 //! let mut style = Style::from_egui(ui.style());
@@ -119,8 +125,7 @@
 //! non-empty surfaces: `Main` and `Window`.
 //!
 //! There can only be one `Main` surface. It's the one surface that is rendered inside the
-//! [`Ui`](egui::Ui) you've passed to [`DockArea::show_inside`], or inside the
-//! [`egui::CentralPanel`] created by [`DockArea::show`].
+//! [`Ui`](egui::Ui) you've passed to [`DockArea::show_inside`].
 //!
 //! On the other hand, there can be multiple `Window` surfaces. Those represent surfaces that were
 //! created by undocking tabs from the `Main` surface, and each of them is rendered inside

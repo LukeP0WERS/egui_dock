@@ -2,7 +2,7 @@
 
 use std::fs;
 
-use eframe::{egui, NativeOptions};
+use eframe::{NativeOptions, egui};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
 const DOCK_STATE_FILE: &str = "target/dock_state.json";
@@ -22,6 +22,10 @@ struct TabViewer {
 
 impl egui_dock::TabViewer for TabViewer {
     type Tab = String;
+
+    fn id(&mut self, tab: &mut Self::Tab) -> egui::Id {
+        egui::Id::new(tab)
+    }
 
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         (&*tab).into()

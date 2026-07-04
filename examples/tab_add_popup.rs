@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::{egui, NativeOptions};
+use eframe::{NativeOptions, egui};
 use egui::{Color32, RichText};
 use egui_dock::{DockArea, DockState, NodeIndex, NodePath, Style, SurfaceIndex};
 
@@ -13,11 +13,13 @@ fn main() -> eframe::Result<()> {
     )
 }
 
+#[derive(Hash, Debug)]
 enum MyTabKind {
     Regular,
     Fancy,
 }
 
+#[derive(Hash, Debug)]
 struct MyTab {
     kind: MyTabKind,
     path: NodePath,
@@ -67,6 +69,10 @@ struct TabViewer<'a> {
 
 impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = MyTab;
+
+    fn id(&mut self, tab: &mut Self::Tab) -> egui::Id {
+        egui::Id::new(tab)
+    }
 
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         tab.title().into()
