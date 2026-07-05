@@ -29,7 +29,9 @@ impl egui_dock::TabViewer for TabViewer {
         match tab.as_str() {
             "Visible" => {
                 ui.label("The tab bar is showing.");
-                ui.label("Right click a tab and press 'Hide Tab Bar' to collapse the tab bar region.");
+                ui.label(
+                    "Right click a tab and press 'Hide Tab Bar' to collapse the tab bar region.",
+                );
             }
             "Hidden" => {
                 ui.label("The tab bar is hidden.");
@@ -49,11 +51,9 @@ impl Default for MyApp {
     fn default() -> Self {
         let mut tree = DockState::new(vec!["Visible".to_owned()]);
 
-        let [_, b] = tree.main_surface_mut().split_right(
-            NodeIndex::root(),
-            0.5,
-            vec!["Hidden".to_owned()],
-        );
+        let [_, b] =
+            tree.main_surface_mut()
+                .split_right(NodeIndex::root(), 0.5, vec!["Hidden".to_owned()]);
 
         // Hide the tab bar on the right panel
         tree.main_surface_mut()[b].set_tab_bar_hidden(true);
