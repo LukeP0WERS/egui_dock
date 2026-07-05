@@ -70,10 +70,12 @@ impl<Tab> DockArea<'_, Tab> {
         } else {
             // use the top margin of the tab body as a tab bar
             let style = style.unwrap_or_else(|| self.style.as_ref().unwrap());
-            let drag_size = vec2(
-                ui.available_width(),
-                style.tab.tab_body.inner_margin.top as f32,
-            );
+            let drag_height = style
+                .tab
+                .tab_body
+                .hidden_tab_bar_drag_height
+                .unwrap_or(style.tab.tab_body.inner_margin.top as f32);
+            let drag_size = vec2(ui.available_width(), drag_height);
             Rect::from_min_size(ui.cursor().min, drag_size)
         };
         self.tab_body(
@@ -184,7 +186,13 @@ impl<Tab> DockArea<'_, Tab> {
         }
 
         // allow tab to be draggable via the top margin of the tab body
-        if self.draggable_tabs && !on_button {
+
+        let drag_enabled = style
+            .tab
+            .tab_body
+            .hidden_tab_bar_drag_height
+            .is_none_or(|h| h > 0.0);
+        if self.draggable_tabs && drag_enabled && !on_button {
             if drag_response.hovered() {
                 ui.output_mut(|o| o.cursor_icon = CursorIcon::Grab);
             }
@@ -968,7 +976,7 @@ impl<Tab> DockArea<'_, Tab> {
         let pointer_pos = ui.ctx().pointer_interact_pos()?;
         let start = *state.drag_start.get_or_insert(pointer_pos);
         let delta = pointer_pos - start;
-        if delta.x.abs() > 30.0 || delta.y.abs() > 6.0 {
+        (delta.x.abs() > 30.0 || delta.y.abs() > 6.0).then(|| {
             ui.memory_mut(|mem| {
                 mem.data.insert_temp(
                     self.id.with("drag_data"),
@@ -978,10 +986,8 @@ impl<Tab> DockArea<'_, Tab> {
                     }),
                 );
             });
-            Some(delta)
-        } else {
-            None
-        }
+            delta
+        })
     }
 
     fn draw_arrow(collapsed: bool, ui: &mut Ui, color: Color32, arrow_rect: Rect) {

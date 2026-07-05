@@ -272,6 +272,14 @@ pub struct TabBodyStyle {
 
     /// Colour of the tab's background. By `Default` it's [`Color32::WHITE`].
     pub bg_fill: Color32,
+
+    /// Optional height override for the draggable area when the tab bar is hidden.
+    ///
+    /// When `None` (default), the drag area height equals [`TabBodyStyle::inner_margin`]`.top`.
+    /// When `Some(height)`, the drag area uses this height instead, overlapping the tab body
+    /// content without shifting it down.
+    /// Setting this to `Some(0.0)` disables dragging from the hidden tab bar entirely.
+    pub hidden_tab_bar_drag_height: Option<f32>,
 }
 
 /// Specifies the look and feel of the tab drop overlay.
@@ -494,6 +502,7 @@ impl Default for TabBodyStyle {
             stroke: Stroke::default(),
             corner_radius: CornerRadius::default(),
             bg_fill: Color32::WHITE,
+            hidden_tab_bar_drag_height: None,
         }
     }
 }
@@ -803,6 +812,7 @@ impl TabBodyStyle {
             stroke: style.visuals.widgets.noninteractive.bg_stroke,
             corner_radius: style.visuals.widgets.active.corner_radius,
             bg_fill: style.visuals.window_fill(),
+            hidden_tab_bar_drag_height: None,
         }
     }
 }
